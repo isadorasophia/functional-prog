@@ -1,14 +1,15 @@
 CC			= ghc
 SOURCES		= $(shell find $(SOURCEDIR) -maxdepth 1 -name '*.hs')
+FLAGS		= --make
 OBJS		= $(SOURCES:.hs=) 
 MAKEFLAGS   = --no-print-directory
 
-%.hs:
-	$(CC) $@.c -o $@
+%:
+	$(CC) $(FLAGS) $@
 
 all:
 	@make --no-print-directory clean
 	@make --no-print-directory $(OBJS);
 
 clean:
-	rm -rf $(OBJS)
+	rm -rf $(OBJS) *.o *.hi
