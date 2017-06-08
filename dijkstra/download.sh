@@ -1,6 +1,6 @@
 #!/bin/sh
 
-website="https://susy.ic.unicamp.br:9999/mc346a/03/dados/"
+website="http://www.ic.unicamp.br/~wainer/cursos/1s2017/mc346/testes-proj2/"
 download_dir="answer"
 
 n_files=4

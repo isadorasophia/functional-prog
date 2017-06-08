@@ -29,11 +29,16 @@ main = do
             tuple = dijkstra graph ([], (updateCost source 0 (initCost graph)))
             pathExists = isTherePath source target (fst tuple)
             pathCost = findCost target (snd tuple)
+            path = retrievePath source target (fst tuple) (snd tuple)
 
-        putStrLn $ show source
-        putStrLn $ show target
-        putStrLn $ show graph
-        putStrLn $ show pathCost
+        putStrLn $ "inicial: " ++ source
+        putStrLn $ "final: " ++ target
+        putStrLn $ "custo: " -- Printar o custo pathCost
+        if pathExists then
+            putStrLn $ show path -- printar o path direito, é uma lista assim ["a", "b", ...]
+        else
+            putStrLn $ "nada"
+        
 
 -- #######       helper functions        ####### --
 
@@ -165,11 +170,11 @@ isTherePath s t parents
                         
                         where dad = getParent t parents
 
-retrievePathCost :: String -> String -> Parents -> Costs -> Float
-retrievePathCost s t parents costs
-                        | s == t = 0
-                        | hasParent t parents = c + (findCost t costs)
+retrievePath :: String -> String -> Parents -> Costs -> [String]
+retrievePath s t parents costs
+                        | s == t = [s]
+                        | hasParent t parents = c ++ [t]
                         | otherwise = c
                         
                         where dad = getParent t parents
-                              c = retrievePathCost s dad parents costs
+                              c = retrievePath s dad parents costs
