@@ -27,11 +27,13 @@ main = do
             target = last content
             graph = insertIfNull target $ convertGraph $ readEdges content
             tuple = dijkstra graph ([], (updateCost source 0 (initCost graph)))
+            pathExists = isTherePath source target (fst tuple)
+            pathCost = findCost target (snd tuple)
 
         putStrLn $ show source
         putStrLn $ show target
         putStrLn $ show graph
-        putStrLn $ show tuple
+        putStrLn $ show pathCost
 
 -- #######       helper functions        ####### --
 
@@ -84,7 +86,7 @@ deleteEdge target (h:r) = if h == target then r else h:deleteEdge target r
 
 -- retrieve id of minimal cost node
 getMinNode :: Costs -> String
-getMinNode costs = snd ( foldl (\ (min, string) c -> if and [or [(min > cost c), (min == -1)], bgraph c] then (cost c, idf c) else (min, string)) (-1, []) costs )
+getMinNode costs = snd ( foldl (\ (min, string) c -> if and [or [and [(min > cost c), cost c /= (-1)], (min == -1)], bgraph c] then (cost c, idf c) else (min, string)) (-1, []) costs )
 
 -- add new parent to the list if it doesn´t exists and replace if it exists
 addParent :: String -> String -> Parents -> Parents
@@ -147,3 +149,27 @@ setBoolCost i b (c:r) =  if idf c == i then
                             ((Cost i (cost c) b):r)
                         else
                             (c:(setBoolCost i b r))
+hasParent :: String -> Parents -> Bool
+hasParent _ [] = False
+hasParent s (h:r) = if child h == s then True else hasParent s r
+
+getParent :: String -> Parents -> String
+getParent _ [] = ""
+getParent s (h:r) = if child h == s then parent h else getParent s r
+
+isTherePath :: String -> String -> Parents -> Bool
+isTherePath s t parents
+                        | s == t = True
+                        | hasParent t parents = isTherePath s dad parents
+                        | otherwise = False
+                        
+                        where dad = getParent t parents
+
+retrievePathCost :: String -> String -> Parents -> Costs -> Float
+retrievePathCost s t parents costs
+                        | s == t = 0
+                        | hasParent t parents = c + (findCost t costs)
+                        | otherwise = c
+                        
+                        where dad = getParent t parents
+                              c = retrievePathCost s dad parents costs
