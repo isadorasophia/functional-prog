@@ -26,10 +26,12 @@ main = do
             source = last $ init content
             target = last content
             graph = insertIfNull target $ convertGraph $ readEdges content
+            tuple = dijkstra graph ([], (updateCost source 0 (initCost graph)))
 
         putStrLn $ show source
         putStrLn $ show target
         putStrLn $ show graph
+        putStrLn $ show tuple
 
 -- #######       helper functions        ####### --
 
@@ -90,26 +92,34 @@ addParent c p [] = [(Parent c p)]
 addParent c p ((Parent child parent):r) = if child == c then ((Parent c p):r)
                                           else ((Parent child parent):(addParent c p r))
 
+-- update cost of a given node, creating new cost if node isn't there
 updateCost :: String -> Float -> Costs -> Costs
 updateCost i nc [] = [(Cost i nc True)]
 updateCost i nc (c:r) =  if idf c == i then 
-                                        if cost c > nc then ((Cost i nc (bgraph c)):r)
-                                        else (c:r)
+                                        ((Cost i nc (bgraph c)):r)
                                     else
                                         (c:(updateCost i nc r))
+initCost :: Graph -> Costs
+initCost graph = foldl (\ costs x -> updateCost (key x) (-1) costs) [] graph
 
+
+-- returns cost of a given id
 findCost :: String -> Costs -> Float
 findCost _ [] = -1
 findCost s (c:r) = if idf c == s then cost c
                                 else findCost s r
+
+-- returns the node of a given id
 retrieveNode :: String -> Graph -> Node
 retrieveNode target [] = (Node target [])
 retrieveNode target (h:r) = if key h == target then h else retrieveNode target r
 
+-- removes node from graph
 removeNode :: Node -> Graph -> Graph
 removeNode _ [] = []
 removeNode (Node n i) ((Node k e):r) = if n == k then r else ((Node k e):(removeNode (Node n i) r))
 
+-- dijkstra's algorithm
 dijkstra :: Graph -> (Parents, Costs) -> (Parents, Costs)
 dijkstra [] (parents, costs) = (parents, costs)
 dijkstra graph (parents, costs) = 
@@ -119,25 +129,21 @@ dijkstra graph (parents, costs) =
                         minNode = retrieveNode minCost graph
 
 
+-- iterate throught all edges updating the values of the costs and parents of edge's destination
 iterateEdges :: Node -> Parents -> Costs -> (Parents, Costs)
 iterateEdges (Node _ []) parents costs = (parents, costs)
 iterateEdges (Node key ((Edge s d w):r)) parents costs  
-    | or [destCost > sourceCost + w, destCost == -1] =
+    | and [or [destCost > sourceCost + w, destCost == -1], sourceCost /= -1] =
             iterateEdges (Node key r) (addParent d s parents) (updateCost d (sourceCost + w) costs)
     | otherwise = iterateEdges (Node key r) parents costs
 
     where destCost = findCost d costs
           sourceCost = findCost key costs
 
+-- set boolean value that tells if that id is still on the graph or not
 setBoolCost :: String -> Bool -> Costs -> Costs
 setBoolCost i b [] = []
 setBoolCost i b (c:r) =  if idf c == i then 
                             ((Cost i (cost c) b):r)
                         else
                             (c:(setBoolCost i b r))
-
-
-isThereEdge :: Graph -> Bool
-isThereEdge [] = False
-isThereEdge ((Node _ []):r) = isThereEdge r
-isThereEdge ((Node _ _):r) = True
