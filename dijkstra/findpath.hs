@@ -30,9 +30,9 @@ main = do
 
         putStrLn $ "inicial: " ++ source
         putStrLn $ "final: " ++ target
-        putStrLn $ "custo: " ++ show pathCost
 
-        if pathExists then
+        if pathExists then do
+            putStrLn $ "custo: " ++ show pathCost
             putStrLn $ printPath path
         else
             putStrLn $ "nada"
