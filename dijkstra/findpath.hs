@@ -9,6 +9,8 @@
 -- let edges = readEdges ["d c 343.3","d c 34.3","a d 34.3","d","s"]
 -- let graph = convertGraph edges
 
+import Data.List
+
 -- data structures for our graph
 data Edge = Edge { from :: String, to :: String, weight :: Float } deriving (Show, Read, Eq)
 data Node = Node { key :: String, edges :: [Edge] } deriving (Show, Read, Eq)
@@ -22,6 +24,7 @@ type Parents = [Parent]
 
 main = do
         input <- getContents
+        
         let content = lines input
             source = last $ init content
             target = last content
@@ -33,12 +36,13 @@ main = do
 
         putStrLn $ "inicial: " ++ source
         putStrLn $ "final: " ++ target
-        putStrLn $ "custo: " -- Printar o custo pathCost
+        putStrLn $ "custo: " ++ show pathCost
+
         if pathExists then
-            putStrLn $ show path -- printar o path direito, é uma lista assim ["a", "b", ...]
+            putStrLn $ intercalate " " path
         else
             putStrLn $ "nada"
-        
+
 
 -- #######       helper functions        ####### --
 
@@ -87,11 +91,11 @@ deleteEdge :: Edge -> [Edge] -> [Edge]
 deleteEdge _ [] = []
 deleteEdge target (h:r) = if h == target then r else h:deleteEdge target r
 
--- WAKE ME UP INSIDEEEEEEEEEEEE
-
 -- retrieve id of minimal cost node
 getMinNode :: Costs -> String
-getMinNode costs = snd ( foldl (\ (min, string) c -> if and [or [and [(min > cost c), cost c /= (-1)], (min == -1)], bgraph c] then (cost c, idf c) else (min, string)) (-1, []) costs )
+getMinNode costs = snd ( foldl (\ (min, string) c -> if and [or 
+    [and [(min > cost c), cost c /= (-1)], (min == -1)], bgraph c] 
+    then (cost c, idf c) else (min, string)) (-1, []) costs )
 
 -- add new parent to the list if it doesn´t exists and replace if it exists
 addParent :: String -> String -> Parents -> Parents
@@ -130,7 +134,8 @@ removeNode (Node n i) ((Node k e):r) = if n == k then r else ((Node k e):(remove
 dijkstra :: Graph -> (Parents, Costs) -> (Parents, Costs)
 dijkstra [] (parents, costs) = (parents, costs)
 dijkstra graph (parents, costs) = 
-                    dijkstra (removeNode (minNode) graph) (iterateEdges minNode parents (setBoolCost minCost False costs))
+                    dijkstra (removeNode (minNode) graph) 
+                    (iterateEdges minNode parents (setBoolCost minCost False costs))
                     where 
                         minCost = (getMinNode costs)
                         minNode = retrieveNode minCost graph
