@@ -5,12 +5,6 @@
 --
 -- --------------------------------------------------------------
 
--- mocking and testing functions:
--- let edges = readEdges ["d c 343.3","d c 34.3","a d 34.3","d","s"]
--- let graph = convertGraph edges
-
-import Data.List
-
 -- data structures for our graph
 data Edge = Edge { from :: String, to :: String, weight :: Float } deriving (Show, Read, Eq)
 data Node = Node { key :: String, edges :: [Edge] } deriving (Show, Read, Eq)
@@ -24,7 +18,7 @@ type Parents = [Parent]
 
 main = do
         input <- getContents
-        
+
         let content = lines input
             source = last $ init content
             target = last content
@@ -39,7 +33,7 @@ main = do
         putStrLn $ "custo: " ++ show pathCost
 
         if pathExists then
-            putStrLn $ intercalate " " path
+            putStrLn $ printPath path
         else
             putStrLn $ "nada"
 
@@ -55,6 +49,10 @@ initN n p = if n > 0 then initN (n-1) $ init p
 readEdges :: [String] -> [Edge]
 readEdges input = map (\[a, b, w] -> Edge a b (read w :: Float)) content 
                     where content = map (words) $ initN 2 $ input
+
+printPath :: [String] -> String
+printPath [] = ""
+printPath (x:xs) = x ++ " " ++ printPath xs
 
 -- ####### where the real work gets done ####### --
 
